@@ -28,7 +28,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-default-secret-key", ca
 DEBUG =  config("DEBUG", default=True, cast=bool)
 
 ALLOWED_HOSTS = ["localhost", "elirm.ru", "dc.elirm.ru"]
-CSRF_TRUSTED_ORIGINS = ["dc.elirm.ru"]
+CSRF_TRUSTED_ORIGINS = ["https://dc.elirm.ru"]
 
 
 # Application definition
