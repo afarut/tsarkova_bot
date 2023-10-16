@@ -27,7 +27,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-default-secret-key", ca
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG =  config("DEBUG", default=True, cast=bool)
 
-ALLOWED_HOSTS = ["localhost", "elirm.ru", "b226-83-220-237-82.ngrok-free.app"]
+ALLOWED_HOSTS = ["localhost", "elirm.ru", "dc.elirm.ru"]
 
 
 # Application definition
