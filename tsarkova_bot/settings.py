@@ -28,7 +28,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-default-secret-key", ca
 DEBUG =  config("DEBUG", default=True, cast=bool)
 
 ALLOWED_HOSTS = ["localhost", "elirm.ru", "dc.elirm.ru"]
-CSRF_TRUSTED_ORIGINS = ["https://dc.elirm.ru"]
+CSRF_TRUSTED_ORIGINS = ["https://dc.elirm.ru", "http://localhost:2233"]
 
 
 # Application definition
@@ -88,10 +88,10 @@ else:
     DATABASES = {
     "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "test_db",
-            "USER": "root",
-            "PASSWORD": "root",
-            "HOST": "tsarkova_bot_db_1",
+            "NAME": "questions_db",
+            "USER": config("DATABASE_USER", default="root", cast=str),
+            "PASSWORD": config("DATABASE_PASSWORD", default="root", cast=str),
+            "HOST": "question_db",
             "PORT": "5432",
         }
     }
@@ -137,6 +137,11 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static") 
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
 # Bot settings
 BOT_TOKEN = config("BOT_TOKEN", default="", cast=str)

@@ -7,12 +7,14 @@ from .models import Question, Answer
 from asgiref.sync import sync_to_async
 from .utils.keyboards import *
 from datetime import datetime, timedelta
+from .utils.middlewares import UserRegisterMiddleware
 
 
-logging.basicConfig(filename="bot.log", level=logging.INFO)
+logging.basicConfig(filename="bot.log", level=logging.DEBUG)
 bot = Bot(token=settings.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot, storage=MemoryStorage())
 dp.middleware.setup(LoggingMiddleware())
+dp.middleware.setup(UserRegisterMiddleware())
 
 
 def question_serialize(q):
@@ -20,6 +22,7 @@ def question_serialize(q):
     question["id"] = q.id
     question["text"] = q.text
     question["answer"] = q.answer
+    question["image"] = q.get_image()
     return question
 
 
@@ -44,20 +47,35 @@ def get_next_question(telegram_id):
 
 @dp.message_handler(commands=["start"], state="*")
 async def bot_echo(message):
-    await message.answer("Приветствую, этот бот поможет вам выучить большинство терминов и определений для сдачи Царьковой. \nС вопросами и предложениями пишите @afarut", reply_markup=menu())
+    await message.answer("Приветствую, этот бот поможет вам выучить большинство терминов и определений для сдачи Царьковой. \nС вопросами и предложениями пишите @afarut", reply_markup=start())
+
+
+@dp.message_handler(commands=["menu"], state="*")
+async def bot_echo(message):
+    await message.answer("\"Я вам всё разжевала, осталось сделать только глотательный рефлекс\". Выберите фильтр:", reply_markup=menu())
 
 
 @dp.callback_query_handler(lambda call: "learn" == call.data)
 async def help(call):
     question = await sync_to_async(get_next_question)(call.message.chat.id)
-    await call.message.edit_text(question["text"], reply_markup=know_answer(question["id"]))
+    try:
+        await call.message.delete()
+    except Exception as e:
+        logging.warning(e)
+    if question['image'] is None:
+        await call.message.answer(question["text"], reply_markup=know_answer(question["id"]))
+    else:
+        await call.message.answer_photo(question["image"], caption=question["text"], reply_markup=know_answer(question['id']))
 
 
 @dp.callback_query_handler(lambda call: "know_answer" in call.data)
 async def to_delivery_method(call, state):
     _, question_id = call.data.split(":")
     question = await sync_to_async(Question.objects.get)(pk=question_id)
-    await call.message.edit_text(question.answer + "\n\nОцените на сколько вы были близки к ответу", reply_markup=mark_answer(question_id))
+    if not question.image:
+        await call.message.edit_text(question.answer + "\n\nОцените на сколько вы были близки к ответу", reply_markup=mark_answer(question_id))
+    else:
+        await call.message.edit_caption(question.answer + "\n\nОцените на сколько вы были близки к ответу", reply_markup=mark_answer(question_id))
 
 
 @dp.callback_query_handler(lambda call: "mark_answer" in call.data)

@@ -6,3 +6,6 @@ postgres_data/
 .env
 /env
 /static
+/media
+*.swp
+*.pyc
