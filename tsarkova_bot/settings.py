@@ -88,7 +88,7 @@ else:
     DATABASES = {
     "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "questions_db",
+            "NAME": "test_db",
             "USER": config("DATABASE_USER", default="root", cast=str),
             "PASSWORD": config("DATABASE_PASSWORD", default="root", cast=str),
             "HOST": "question_db",
