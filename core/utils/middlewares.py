@@ -12,7 +12,7 @@ class UserRegisterMiddleware(BaseMiddleware):
         await sync_to_async(TelgramUser.objects.get_or_create)(
                 telegram_id=message.chat.id, 
                 username=message.chat.username, 
-                name=f'{"" if message.chat.first_name else message.chat.first_name} {"" if message.chat.last_name else message.chat.last_name}'
+                name=f'{"" if message.chat.first_name is None else message.chat.first_name} {"" if message.chat.last_name is None else message.chat.last_name}'
             )
 
     async def on_process_callback_query(self, call: types.CallbackQuery, data: dict):
