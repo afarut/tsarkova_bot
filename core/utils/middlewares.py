@@ -1,6 +1,6 @@
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram import types
-from core.models import TelgramUser
+from core.models import TelegramUser
 from asgiref.sync import sync_to_async
 
 
@@ -9,7 +9,7 @@ class UserRegisterMiddleware(BaseMiddleware):
         super(UserRegisterMiddleware, self).__init__()
 
     async def on_process_message(self, message: types.Message, data: dict):
-        user = await sync_to_async(TelgramUser.objects.get_or_create)(telegram_id=message.chat.id)
+        user = await sync_to_async(TelegramUser.objects.get_or_create)(telegram_id=message.chat.id)
         user = user[0]
         user.username=message.chat.username
         user.name=f'{"" if message.chat.first_name is None else message.chat.first_name} {"" if message.chat.last_name is None else message.chat.last_name}'

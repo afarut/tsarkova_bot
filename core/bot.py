@@ -3,7 +3,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram import Bot, Dispatcher, types
 import logging
-from .models import Question, Answer
+from .models import Question, Answer, TelegramUser, Filter
 from asgiref.sync import sync_to_async
 from .utils.keyboards import *
 from datetime import datetime, timedelta
@@ -47,12 +47,12 @@ def get_next_question(telegram_id):
 
 @dp.message_handler(commands=["start"], state="*")
 async def bot_echo(message):
-    await message.answer("Приветствую, этот бот поможет вам выучить большинство терминов и определений для сдачи Царьковой. \nС вопросами и предложениями пишите @afarut", reply_markup=start())
+    await message.answer("Приветствую, этот бот поможет вам выучить большинство терминов и определений для сдачи Царьковой.\nДля выбора фильтра пропишите /menu \nС вопросами и предложениями пишите @afarut", reply_markup=start())
 
 
 @dp.message_handler(commands=["menu"], state="*")
 async def bot_echo(message):
-    await message.answer("\"Я вам всё разжевала, осталось сделать только глотательный рефлекс\". Выберите фильтр:", reply_markup=menu())
+    await message.answer("Выберите фильтр:", reply_markup=await async_menu(message.chat.id))
 
 
 @dp.callback_query_handler(lambda call: "learn" == call.data)
@@ -83,3 +83,12 @@ async def to_delivery_method(call, state):
     _, question_id, mark = call.data.split(":")
     await sync_to_async(Answer.objects.create)(telegram_id=call.message.chat.id, question_id=question_id, mark=int(2*int(mark)))
     await help(call)
+
+
+@dp.callback_query_handler(lambda call: "set_filter" in call.data)
+async def to_delivery_method(call, state):
+    _, filter_id = call.data.split(":")
+    user = await sync_to_async(TelegramUser.objects.get)(telegram_id=call.message.chat.id)
+    user.selected_filter = await sync_to_async(Filter.objects.get)(id=filter_id)
+    await sync_to_async(user.save)()
+    await call.message.edit_text("Фильтр успешно установлен", reply_markup=start())

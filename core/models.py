@@ -43,7 +43,7 @@ def get_default_filter():
 	return default_filter
 
 
-class TelgramUser(models.Model):
+class TelegramUser(models.Model):
 	telegram_id = models.PositiveIntegerField(unique=True)
 	selected_filter = models.ForeignKey(Filter, on_delete=models.SET(get_default_filter), default=get_default_filter)
 	username = models.CharField(max_length=200, null=True, blank=True)
