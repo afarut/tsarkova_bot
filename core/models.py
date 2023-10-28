@@ -5,7 +5,7 @@ from django.utils import timezone
 
 
 class Question(models.Model):
-	text = models.TextField(max_length=500)
+	text = models.TextField(max_length=500, unique=True)
 	answer = models.TextField(max_length=700)
 	image = models.ImageField(upload_to="questions", null=True, blank=True)
 

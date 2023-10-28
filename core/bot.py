@@ -28,17 +28,22 @@ def question_serialize(q):
 
 def get_next_question(telegram_id):
     question = {}
+    user = TelegramUser.objects.get(telegram_id=telegram_id)
+    print(user.selected_filter.questions.all())
     last = Answer.objects.filter(telegram_id=telegram_id).order_by("datetime").last()
     if last is None:
         return question_serialize(Question.objects.first())
     today = datetime.now()
-    data = {i.id: 0 for i in Question.objects.all()}
+    data = {i.id: 0 for i in user.selected_filter.questions.all()}
     for i in Answer.objects.filter(datetime__day=today.day, datetime__year=today.year, telegram_id=telegram_id):
-        data[i.question_id] += i.mark
+        if i.question_id in data:
+            data[i.question_id] += i.mark
     for i in Answer.objects.filter(datetime__day=today.day-1, datetime__year=today.year, telegram_id=telegram_id):
-        data[i.question_id] += (i.mark // 2)
+        if i.question_id in data:
+            data[i.question_id] += (i.mark // 2)
     for i in Answer.objects.filter(datetime__day=today.day-2, datetime__year=today.year, telegram_id=telegram_id):
-        data[i.question_id] += (i.mark // 4)
+        if i.question_id in data:
+            data[i.question_id] += (i.mark // 4)
     answers = sorted(list(zip(data.keys(), data.values())), key=lambda x: x[1])
     if answers[0][0] == last.question_id:
         return question_serialize(Question.objects.get(pk=answers[1][0]))
