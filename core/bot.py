@@ -52,7 +52,7 @@ def get_next_question(telegram_id):
 
 @dp.message_handler(commands=["start"], state="*")
 async def bot_echo(message):
-    await message.answer("Приветствую, этот бот поможет вам выучить большинство терминов и определений для сдачи Царьковой.\nДля выбора фильтра пропишите /menu \nС вопросами и предложениями пишите @afarut", reply_markup=start())
+    await message.answer("Приветствую, этот бот поможет вам выучить большинство терминов и определений для сдачи Царьковой.\nДля выбора фильтра пропишите /menu \nС вопросами и предложениями пишите @afarut")
 
 
 @dp.message_handler(commands=["menu"], state="*")
@@ -67,20 +67,23 @@ async def help(call):
         await call.message.delete()
     except Exception as e:
         logging.warning(e)
-    if question['image'] is None:
-        await call.message.answer(question["text"], reply_markup=know_answer(question["id"]))
-    else:
-        await call.message.answer_photo(question["image"], caption=question["text"], reply_markup=know_answer(question['id']))
+    await call.message.answer(question["text"], reply_markup=know_answer(question["id"]))
 
 
 @dp.callback_query_handler(lambda call: "know_answer" in call.data)
 async def to_delivery_method(call, state):
     _, question_id = call.data.split(":")
     question = await sync_to_async(Question.objects.get)(pk=question_id)
+
     if not question.image:
         await call.message.edit_text(question.answer + "\n\nОцените на сколько вы были близки к ответу", reply_markup=mark_answer(question_id))
     else:
-        await call.message.edit_caption(question.answer + "\n\nОцените на сколько вы были близки к ответу", reply_markup=mark_answer(question_id))
+        try:
+            await call.message.delete()
+        except Exception as e:
+            logging.warning(e)
+#        await call.message.edit_caption( reply_markup=mark_answer(question_id))
+        await call.message.answer_photo(question.get_image(), caption=question.answer + "\n\nОцените на сколько вы были близки к ответу", reply_markup=mark_answer(question_id))
 
 
 @dp.callback_query_handler(lambda call: "mark_answer" in call.data)
